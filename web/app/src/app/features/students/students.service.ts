@@ -13,4 +13,12 @@ export class StudentsService {
   getStudents() {
     return this.http.get<Student[]>(this.apiUrl);
   }
+
+  createStudent(data: { firstName: string }) {
+    return this.http.post<Student>(this.apiUrl, data);
+  }
+
+  deleteStudent(id: string) {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
 }

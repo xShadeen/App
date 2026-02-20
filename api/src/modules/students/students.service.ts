@@ -12,7 +12,7 @@ export const studentsService = {
   create: async (data: {
     firstName: string;
     email?: string;
-    phone?: string;
+    phone: string;
   }) => {
     return prisma.student.create({
       data,
