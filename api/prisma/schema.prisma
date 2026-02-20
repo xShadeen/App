@@ -17,5 +17,5 @@ model Student {
   id        String   @id @default(uuid())
   firstName String
   email     String?
-  phone     String?
+  phone     String
 }
