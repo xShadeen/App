@@ -25,7 +25,7 @@ jobs:
       - name: Type check backend
         run: |
           cd api
-          npx tsc --noEmit
+          npx tsc -p tsconfig.json --noEmit
 
       - name: Install frontend deps
         run: |
