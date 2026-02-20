@@ -1,0 +1,17 @@
+<h1>Students</h1>
+
+@if (loading()) {
+  <div class="spinner"></div>
+}
+
+@if (!loading() && students().length === 0) {
+  <p>No students yet</p>
+}
+
+@if (!loading() && students().length > 0) {
+  <ul>
+    @for (student of students(); track student.id) {
+      <li>{{ student.firstName }}</li>
+    }
+  </ul>
+}
