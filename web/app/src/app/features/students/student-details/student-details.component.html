@@ -1,0 +1,13 @@
+<h1>Student Details</h1>
+
+@if (loading()) {
+  <p>Loading student...</p>
+} @else if (notFound()) {
+  <p>Student not found.</p>
+} @else if (error()) {
+  <p>Something went wrong.</p>
+} @else if (student()) {
+  <p>First name: {{ student()?.firstName }}</p>
+  <p>Email: {{ student()?.email || '-' }}</p>
+  <p>Phone: {{ student()?.phone || '-' }}</p>
+}

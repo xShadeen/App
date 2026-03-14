@@ -24,7 +24,7 @@ export const studentsController = {
   },
 
   delete: async (req: Request, res: Response) => {
-    const id = req.params.id as string;
+    const id = Number(req.params.id);
 
     try {
       await studentsService.delete(id);
@@ -32,5 +32,17 @@ export const studentsController = {
     } catch (error) {
       res.status(404).json({ message: "Student not found" });
     }
+  },
+
+  getById: async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    const student = await studentsService.getById(id);
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json(student);
   },
 };
