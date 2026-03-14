@@ -4,5 +4,8 @@ import { studentsController } from "./students.controller";
 export const studentsRouter = Router();
 
 studentsRouter.get("/", studentsController.getAll);
+studentsRouter.get("/:id", studentsController.getById);
+
 studentsRouter.post("/", studentsController.create);
+
 studentsRouter.delete("/:id", studentsController.delete);

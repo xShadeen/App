@@ -19,8 +19,14 @@ export const studentsService = {
     });
   },
 
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     return prisma.student.delete({
+      where: { id },
+    });
+  },
+
+  getById: async (id: number) => {
+    return prisma.student.findUnique({
       where: { id },
     });
   },

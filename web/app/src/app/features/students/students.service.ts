@@ -14,6 +14,10 @@ export class StudentsService {
     return this.http.get<Student[]>(this.apiUrl);
   }
 
+  getStudentById(id: number) {
+    return this.http.get<Student>(`${this.apiUrl}/${id}`);
+  }
+
   createStudent(data: { firstName: string }) {
     return this.http.post<Student>(this.apiUrl, data);
   }
