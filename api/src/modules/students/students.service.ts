@@ -1,10 +1,10 @@
 import { prisma } from "../../prisma";
 
 export const studentsService = {
-  getAll: async () => {
+  async getAll() {
     return prisma.student.findMany({
-      orderBy: {
-        firstName: "asc",
+      where: {
+        isActive: true,
       },
     });
   },
@@ -19,9 +19,12 @@ export const studentsService = {
     });
   },
 
-  delete: async (id: number) => {
-    return prisma.student.delete({
+  async delete(id: number) {
+    return prisma.student.update({
       where: { id },
+      data: {
+        isActive: false,
+      },
     });
   },
 
