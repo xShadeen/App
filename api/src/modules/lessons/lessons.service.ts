@@ -1,15 +1,24 @@
 import { prisma } from "../../prisma";
 
 export const lessonsService = {
-  getByStudentId: async (studentId: number) => {
-    return prisma.lesson.findMany({
+  getByStudentId: async (studentId: number, year: number, month: number) => {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 1);
+
+    const lessons = await prisma.lesson.findMany({
       where: {
         studentId,
+        date: {
+          gte: start,
+          lt: end,
+        },
       },
       orderBy: {
-        date: "desc",
+        date: "asc",
       },
     });
+
+    return lessons;
   },
 
   markAsPaid: async (lessonId: number) => {
