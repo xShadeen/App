@@ -4,6 +4,8 @@ import { lessonsService } from "./lessons.service";
 export const lessonsController = {
   getByStudentId: async (req: Request, res: Response) => {
     const studentId = Number(req.params.studentId);
+    const year = Number(req.query.year);
+    const month = Number(req.query.month);
 
     if (!studentId) {
       return res.status(400).json({
@@ -11,7 +13,7 @@ export const lessonsController = {
       });
     }
 
-    const lessons = await lessonsService.getByStudentId(studentId);
+    const lessons = await lessonsService.getByStudentId(studentId, year, month);
 
     res.json(lessons);
   },
