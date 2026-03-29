@@ -5,6 +5,7 @@ import { Pool } from "pg";
 import { studentsRouter } from "./modules/students/students.routes";
 import { lessonsRouter } from "./modules/lessons/lessons.routes";
 import calendarRoutes from "./modules/calendar/calendar.routes";
+import groupsRoutes from "./modules/groups/groups.routes";
 const app = express();
 
 app.use(
@@ -22,6 +23,7 @@ app.get("/health", (_req, res) => {
 app.use("/students", studentsRouter);
 app.use("/lessons", lessonsRouter);
 app.use("/calendar", calendarRoutes);
+app.use("/groups", groupsRoutes);
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 

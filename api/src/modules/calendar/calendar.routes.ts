@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { syncCalendar } from "./calendar.controller";
 
-const router = Router();
+const calendarRouter = Router();
 
-router.post("/sync", syncCalendar);
+calendarRouter.post("/sync", syncCalendar);
 
-export default router;
+export default calendarRouter;

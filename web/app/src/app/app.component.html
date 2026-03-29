@@ -1,1 +1,53 @@
-<router-outlet></router-outlet>
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <img src="logo_no_bg_hd.png" alt="Logo" class="logo" />
+
+    <nav>
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link"> Dashboard </a>
+
+      <div class="nav-section">
+        <div class="nav-title" (click)="toggleStudents()">
+          <span>Students</span>
+          <span class="arrow" [class.open]="studentsOpen()">▼</span>
+        </div>
+
+        @if (studentsOpen()) {
+          <div class="nav-sublist" [class.open]="studentsOpen()">
+            @for (student of activeStudents(); track student.id) {
+              <a
+                class="nav-item"
+                [routerLink]="['/students', student.id]"
+                routerLinkActive="active"
+              >
+                <span>{{ student.firstName }}</span>
+
+                <span class="delete-btn" (click)="onDeleteStudentClick(student)"> ✕ </span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+      <button class="sync-btn" (click)="syncCalendar()" [disabled]="isSyncing()">
+        @if (isSyncing()) {
+          Syncing...
+        } @else {
+          Sync Calendar
+        }
+      </button>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
+<app-confirm-modal
+  [isOpen]="isDeleteModalOpen()"
+  [title]="'Delete student'"
+  [message]="'Are you sure you want to delete ' + (selectedStudent()?.firstName ?? '') + '?'"
+  [studentName]="selectedStudent()?.firstName ?? ''"
+  (confirm)="confirmDelete()"
+  (cancel)="closeModal()"
+></app-confirm-modal>

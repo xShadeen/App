@@ -1,6 +1,6 @@
 import { Component, inject, signal, ViewChild, ElementRef } from '@angular/core';
-import { Student } from './student.model';
-import { StudentsService } from './students.service';
+import { Student } from '../../models/student.model';
+import { StudentsService } from '../../services/students.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   finalize,
@@ -14,25 +14,31 @@ import {
   Observable,
 } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { phoneValidator } from '../../../../core/phone.validator';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { GroupsService } from '../../services/groups.service';
+import { Group } from '../../models/group.model';
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule],
-  selector: 'app-students-page',
-  templateUrl: './students-page.component.html',
-  styleUrls: ['./students-page.component.scss'],
+  imports: [ReactiveFormsModule, MatFormFieldModule],
+  selector: 'app-student-form',
+  templateUrl: './student-form.component.html',
+  styleUrls: ['./student-form.component.scss'],
 })
-export class StudentsPageComponent {
+export class StudentFormComponent {
   @ViewChild('firstNameInput')
   private firstNameInput?: ElementRef<HTMLInputElement>;
 
   private studentsService = inject(StudentsService);
+  private groupsService = inject(GroupsService);
   private fb = inject(FormBuilder);
   private refresh$ = new Subject<void>();
   form = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
     email: ['', Validators.email],
-    phone: ['', Validators.required],
+    phone: ['', [Validators.required, phoneValidator]],
+    groupId: [''],
   });
 
   loading = signal(true);
@@ -57,6 +63,9 @@ export class StudentsPageComponent {
     { initialValue: [] as Student[] },
   );
 
+  groups = toSignal(this.groupsService.getGroups().pipe(catchError(() => of([]))), {
+    initialValue: [],
+  });
   onSubmit() {
     if (this.form.invalid) return;
 
@@ -73,16 +82,6 @@ export class StudentsPageComponent {
     );
   }
 
-  onDelete(id: string) {
-    this.handleAction(
-      this.studentsService.deleteStudent(id),
-      () => {
-        this.refresh$.next();
-      },
-      'Failed to delete student',
-    );
-  }
-
   private handleAction(request$: Observable<unknown>, onSuccess: () => void, errorMessage: string) {
     this.actionError.set(null);
     this.actionLoading.set(true); // ⭐ DODAJ TO
@@ -92,8 +91,8 @@ export class StudentsPageComponent {
         tap(() => {
           onSuccess();
         }),
-        catchError(() => {
-          this.actionError.set(errorMessage);
+        catchError((err) => {
+          this.actionError.set(err?.error?.message || errorMessage);
           return EMPTY;
         }),
         finalize(() => this.actionLoading.set(false)),

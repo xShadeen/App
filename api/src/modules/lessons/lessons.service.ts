@@ -33,7 +33,7 @@ export const lessonsService = {
     return prisma.lesson.update({
       where: { id: lessonId },
       data: {
-        paid: true,
+        paid: !lesson.paid,
       },
     });
   },

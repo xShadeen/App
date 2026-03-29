@@ -1,0 +1,44 @@
+<div class="student-list">
+  <h2 class="title">Deleted Students</h2>
+
+  @if (students().length > 0) {
+    <div class="list">
+      @for (student of students(); track student.id) {
+        <div class="student-row">
+          <div class="left">
+            <div class="name">
+              {{ student.firstName }}
+            </div>
+
+            <div class="meta">
+              @if (student.deletedAt) {
+                <span> Deleted: {{ student.deletedAt | date: 'short' }} </span>
+              }
+            </div>
+          </div>
+
+          <button
+            class="restore-btn"
+            (click)="onRestore(student)"
+            [disabled]="restoringIds().includes(student.id)"
+          >
+            @if (restoringIds().includes(student.id)) {
+              Restoring...
+            } @else {
+              Restore
+            }
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="empty">No deleted students</p>
+  }
+</div>
+<app-confirm-modal
+  [isOpen]="showRestoreModal()"
+  [title]="'Restore student'"
+  [message]="'Are you sure you want to restore ' + (studentToRestore()?.firstName ?? '') + '?'"
+  (confirm)="confirmRestore()"
+  (cancel)="closeModal()"
+></app-confirm-modal>

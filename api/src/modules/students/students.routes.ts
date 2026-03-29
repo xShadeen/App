@@ -9,3 +9,6 @@ studentsRouter.get("/:id", studentsController.getById);
 studentsRouter.post("/", studentsController.create);
 
 studentsRouter.delete("/:id", studentsController.delete);
+studentsRouter.patch("/:id/restore", studentsController.restore);
+
+studentsRouter.patch("/:id/group", studentsController.updateGroup);

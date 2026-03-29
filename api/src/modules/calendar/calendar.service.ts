@@ -37,7 +37,6 @@ export class CalendarService {
       });
 
       if (!student) {
-        console.log("Student not found:", studentName);
         continue;
       }
 

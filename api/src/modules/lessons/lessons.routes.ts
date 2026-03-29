@@ -4,5 +4,5 @@ import { lessonsController } from "./lessons.controller";
 export const lessonsRouter = Router();
 
 lessonsRouter.get("/student/:studentId", lessonsController.getByStudentId);
-lessonsRouter.patch("/:id/pay", lessonsController.markAsPaid);
-lessonsRouter.patch("/:id", lessonsController.updateNotes);
+lessonsRouter.patch("/:id/paid", lessonsController.markAsPaid);
+lessonsRouter.patch("/:id/note", lessonsController.updateNotes);

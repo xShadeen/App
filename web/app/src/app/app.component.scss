@@ -1,0 +1,172 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 300px;
+  background: #f5d0d0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar h2 {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+}
+
+/* NAV */
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 🔥 WSPÓLNY STYL LINKÓW */
+.nav-link {
+  text-decoration: none;
+  color: #333;
+  padding: 12px 14px;
+  border-radius: 8px;
+  transition: 0.2s;
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: #f0bebe;
+}
+
+.nav-link.active {
+  background: #e89a9a;
+  color: white;
+}
+
+/* SEKCJA STUDENTS */
+.nav-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* TITLE (Students) */
+.nav-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 12px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+
+  font-size: 18px;
+  font-weight: 500; /* 👈 zmiana (jak nav-link) */
+  color: #333;
+}
+
+.nav-title:hover {
+  background: #f0bebe;
+}
+.nav-title.active {
+  background: #e89a9a;
+  color: white;
+}
+
+/* STRZAŁKA */
+.arrow {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+/* LISTA STUDENTÓW */
+.nav-sublist {
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+
+  // transform: scaleY(0);
+  // transform-origin: top;
+  // opacity: 0;
+
+  // transition:
+  //   transform 0.2s ease,
+  //   opacity 0.2s ease;
+}
+
+.nav-sublist.open {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+/* ITEM STUDENTA */
+.nav-item {
+  text-decoration: none;
+  color: #333;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s;
+}
+.nav-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ukryta ikonka */
+.delete-btn {
+  opacity: 0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+/* pokazuje się przy hover */
+.nav-item:hover .delete-btn {
+  opacity: 1;
+}
+
+/* hover na X */
+.delete-btn:hover {
+  color: red;
+}
+.nav-item:hover {
+  background: #f0bebe;
+}
+
+.nav-item.active {
+  background: #e89a9a;
+  color: white;
+}
+
+/* CONTENT */
+.content {
+  flex: 1;
+  padding: 28px;
+  overflow: auto;
+}
+.sync-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #e89a9a;
+  color: white;
+  cursor: pointer;
+}
+
+.sync-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
