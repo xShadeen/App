@@ -8,19 +8,26 @@ export const studentsController = {
   },
 
   create: async (req: Request, res: Response) => {
-    const { firstName, email, phone } = req.body;
+    try {
+      const { firstName, email, phone, groupId } = req.body;
 
-    if (!firstName) {
-      return res.status(400).json({ message: "firstName is required" });
+      if (!firstName) {
+        return res.status(400).json({ message: "First name is required" });
+      }
+
+      const student = await studentsService.create({
+        firstName,
+        email,
+        phone,
+        groupId,
+      });
+
+      res.status(201).json(student);
+    } catch (err: any) {
+      res.status(err.status || 500).json({
+        message: err.message || "Internal server error",
+      });
     }
-
-    const student = await studentsService.create({
-      firstName,
-      email,
-      phone,
-    });
-
-    res.status(201).json(student);
   },
 
   delete: async (req: Request, res: Response) => {
@@ -29,6 +36,17 @@ export const studentsController = {
     try {
       await studentsService.delete(id);
       res.status(204).send();
+    } catch (error) {
+      res.status(404).json({ message: "Student not found" });
+    }
+  },
+
+  restore: async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    try {
+      const student = await studentsService.restore(id);
+      res.json(student);
     } catch (error) {
       res.status(404).json({ message: "Student not found" });
     }
@@ -44,5 +62,16 @@ export const studentsController = {
     }
 
     res.json(student);
+  },
+  updateGroup: async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    const { groupId } = req.body;
+
+    try {
+      const student = await studentsService.updateGroup(id, groupId);
+      res.json(student);
+    } catch (error) {
+      res.status(404).json({ message: "Student not found" });
+    }
   },
 };

@@ -1,1 +1,40 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+
+  --border-radius: 12px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.card {
+  background: var(--color-card);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+:root {
+  --color-bg: #f6efe9;
+  --color-card: #ffffff;
+  --color-primary: #e8a9a1; // łososiowy
+  --color-primary-soft: #f3cfc9;
+  --color-text: #4a3f3f;
+  --color-muted: #8a7a7a;
+}
+
+h1 {
+  color: var(--color-text);
+}
+
+.app-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}

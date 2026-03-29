@@ -1,0 +1,69 @@
+<div class="form-wrapper">
+  <div class="form-card">
+    <h2>Add Student</h2>
+
+    @if (actionError()) {
+      <div class="error-box">
+        {{ actionError() }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-field">
+        <label for="firstName">First name</label>
+        <input #firstNameInput id="firstName" type="text" formControlName="firstName" />
+        @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
+          <small>First name is required</small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" />
+        @if (
+          form.controls.email.touched && form.controls.email.value && form.controls.email.invalid
+        ) {
+          <small>Invalid email format</small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="phone">Phone</label>
+        <input id="phone" type="text" formControlName="phone" placeholder="+48123456789" />
+
+        @if (form.controls.phone.touched && form.controls.phone.errors?.['required']) {
+          <small>Phone is required</small>
+        }
+
+        @if (form.controls.phone.errors?.['missingCountryCode']) {
+          <small>Phone number must include country code (e.g. +48)</small>
+        }
+
+        @if (form.controls.phone.errors?.['invalidPhone']) {
+          <small>Invalid phone number</small>
+        }
+        @if (form.controls.phone.errors?.['invalidFormat']) {
+          <small>Only numbers allowed and must start with +</small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="group">Group</label>
+        <input
+          id="group"
+          type="text"
+          formControlName="groupId"
+          placeholder="Group name (optional)"
+        />
+      </div>
+
+      <button type="submit" [disabled]="actionLoading()">
+        @if (actionLoading()) {
+          Adding...
+        } @else {
+          Add Student
+        }
+      </button>
+    </form>
+  </div>
+</div>

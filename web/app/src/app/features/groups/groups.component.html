@@ -1,0 +1,34 @@
+<h1>Groups</h1>
+
+<div class="groups-container">
+  @for (group of groups(); track group.id) {
+    <div class="group-card">
+      <!-- HEADER -->
+      <div class="group-header" (click)="selectGroup(group)">
+        <span class="group-name">{{ group.name }}</span>
+
+        <span class="group-count"> {{ group.students.length }} students </span>
+      </div>
+
+      <!-- STUDENTS -->
+      @if (selectedGroup()?.id === group.id) {
+        <div class="students-list">
+          @for (student of group.students; track student.id) {
+            <div class="student-row">
+              <span class="student-name">
+                {{ student.firstName }}
+              </span>
+
+              <button
+                class="remove-btn"
+                (click)="removeFromGroup(student.id); $event.stopPropagation()"
+              >
+                Remove
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

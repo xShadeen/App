@@ -1,0 +1,245 @@
+h1 {
+  margin-bottom: 16px;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  justify-content: flex-start; // 🔥 najważniejsza zmiana
+  gap: 24px; // odstęp między label a value
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.label {
+  width: 120px; // 🔥 stała szerokość = wyrównanie
+  font-weight: 500;
+  color: #666;
+}
+
+.row span:last-child {
+  color: #111;
+}
+
+.lessons-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-row {
+  display: grid;
+  grid-template-columns: 120px 80px 1fr;
+  padding: 8px 0;
+  align-items: center;
+}
+
+.lesson-row:not(.header) {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.lesson-row.header {
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 4px;
+}
+
+.date {
+  width: 80px;
+  font-weight: 500;
+}
+
+.paid {
+  display: flex;
+  align-items: center;
+
+  mat-icon {
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  &.clickable:hover mat-icon {
+    transform: scale(1.1);
+  }
+}
+
+.paid mat-icon {
+  color: #999;
+}
+
+.lesson-row .paid mat-icon {
+  color: #999;
+}
+
+.lesson-row .paid mat-icon {
+  &.paid {
+    color: #4caf50;
+  }
+}
+.notes {
+  flex: 1;
+  color: var(--color-muted);
+}
+
+.clickable {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.clickable:hover {
+  transform: scale(1.1);
+}
+/* =========================
+   TYPO / OGÓLNE
+========================= */
+
+h1 {
+  margin-bottom: 16px;
+}
+
+/* =========================
+   STUDENT INFO
+========================= */
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 24px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.label {
+  width: 120px;
+  font-weight: 500;
+  color: #666;
+}
+
+.row span:last-child {
+  color: #111;
+}
+
+/* =========================
+   LESSONS
+========================= */
+
+.lessons-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-row {
+  display: grid;
+  grid-template-columns: 120px 80px 1fr;
+  align-items: center;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+/* header */
+.lesson-row.header {
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 4px;
+}
+
+/* rows */
+.lesson-row:not(.header) {
+  border-bottom: 1px solid #f0f0f0;
+  cursor: default;
+}
+
+.lesson-row:not(.header):hover {
+  background: #f5f5f5;
+}
+
+/* =========================
+   COLUMNS
+========================= */
+
+.date {
+  width: 80px;
+  font-weight: 500;
+}
+
+.notes {
+  flex: 1;
+  color: var(--color-muted);
+}
+
+/* =========================
+   PAID ICON
+========================= */
+
+.paid {
+  display: flex;
+  align-items: center;
+}
+
+.paid mat-icon {
+  cursor: pointer;
+  transition: 0.2s;
+  color: #999;
+}
+
+/* hover */
+.paid mat-icon:hover {
+  transform: scale(1.1);
+}
+
+/* active (paid) */
+.paid mat-icon.paid {
+  color: #4caf50;
+}
+
+/* =========================
+   UTIL
+========================= */
+
+.clickable {
+  cursor: pointer;
+}
+
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* 🔥 miesiąc jako "badge" */
+.month-pill {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  min-width: 140px;
+  text-align: center;
+}
+
+/* 🔥 przyciski */
+.nav-btn {
+  background: #f5f5f5;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.nav-btn:hover {
+  background: #e0e0e0;
+  transform: scale(1.05);
+}

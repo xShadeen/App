@@ -1,0 +1,96 @@
+<h1>Student Details</h1>
+
+<div class="card">
+  @if (loading()) {
+    <div class="center">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (notFound()) {
+    <p class="error">Student not found.</p>
+  } @else if (error()) {
+    <p class="error">Something went wrong.</p>
+  } @else if (student()) {
+    <div class="student-info">
+      <div class="row">
+        <span class="label">First name</span>
+        <span>{{ student()?.firstName }}</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Email</span>
+        <span>{{ student()?.email || '-' }}</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Phone</span>
+        <span>{{ student()?.phone || '-' }}</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Group</span>
+        <span>{{ student()?.group?.name || '-' }}</span>
+      </div>
+    </div>
+  }
+</div>
+
+<div class="lessons-section">
+  <div class="section-header">
+    <h2>Lessons</h2>
+    <div class="month-nav">
+      <button mat-icon-button class="nav-btn" (click)="prevMonth()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <div class="month-pill">
+        {{ currentMonthLabel() }}
+      </div>
+
+      <button mat-icon-button class="nav-btn" (click)="nextMonth()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    @if (lessons().length === 0) {
+      <p>No lessons for this month.</p>
+    } @else {
+      <div class="lessons-list">
+        <!-- HEADER -->
+        <div class="lesson-row header">
+          <span class="date">Date</span>
+          <span class="paid">Paid</span>
+          <span class="notes">Note</span>
+        </div>
+        @for (lesson of lessons(); track lesson.id) {
+          <div class="lesson-row">
+            <span class="date">
+              {{ lesson.date | date: 'dd MMM' }}
+            </span>
+            <span class="paid">
+              <mat-icon class="clickable" [class.paid]="lesson.paid" (click)="togglePaid(lesson)">
+                {{ lesson.paid ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+            </span>
+
+            <span class="notes" (click)="startEditing(lesson)">
+              @if (editingLessonId() === lesson.id) {
+                <input
+                  #inputRef
+                  [value]="lesson.notes || ''"
+                  (blur)="saveNotes(lesson, $event)"
+                  (keydown.enter)="saveNotes(lesson, $event)"
+                  (keydown.escape)="cancelEditing(lesson)"
+                  (click)="$event.stopPropagation()"
+                />
+              } @else {
+                {{ lesson.notes || '-' }}
+              }
+            </span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

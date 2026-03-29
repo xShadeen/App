@@ -15,12 +15,14 @@ datasource db {
 
 model Student {
   id        Int     @id @default(autoincrement())
-  firstName String
+  firstName String  @unique
   email     String?
-  phone     String
+  phone     String  @unique
   isActive  Boolean @default(true)
-
+  deletedAt DateTime?
   lessons   Lesson[]
+  groupId String?
+  group   Group? @relation(fields: [groupId], references: [id])
 }
 
 model Lesson {
@@ -36,4 +38,10 @@ model Lesson {
 
   studentId Int
   student   Student @relation(fields: [studentId], references: [id])
+}
+
+model Group {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  students Student[]
 }
