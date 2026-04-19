@@ -5,6 +5,7 @@ import { map } from 'rxjs/internal/operators/map';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { tap } from 'rxjs/internal/operators/tap';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -51,9 +52,13 @@ export class StudentsService {
     );
   }
 
+  updateStudentGroup(studentId: number, groupId: string | null): Observable<Student> {
+    return this.http.patch<Student>(`${this.apiUrl}/${studentId}/group`, { groupId }).pipe(
+      tap(() => this.triggerRefresh()),
+    );
+  }
+
   removeFromGroup(studentId: number) {
-    return this.http.patch(`${this.apiUrl}/${studentId}/group`, {
-      groupId: null,
-    });
+    return this.updateStudentGroup(studentId, null);
   }
 }

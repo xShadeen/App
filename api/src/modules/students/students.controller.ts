@@ -70,8 +70,15 @@ export const studentsController = {
     try {
       const student = await studentsService.updateGroup(id, groupId);
       res.json(student);
-    } catch (error) {
-      res.status(404).json({ message: "Student not found" });
+    } catch (error: any) {
+      if (error?.status === 400) {
+        return res.status(400).json({ message: error.message });
+      }
+      if (error?.code === "P2025") {
+        return res.status(404).json({ message: "Student not found" });
+      }
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
     }
   },
 };

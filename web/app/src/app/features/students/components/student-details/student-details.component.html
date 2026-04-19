@@ -1,5 +1,12 @@
 <h1>Student Details</h1>
 
+@if (groupActionError()) {
+  <div class="inline-alert" role="alert">
+    <span>{{ groupActionError() }}</span>
+    <button type="button" class="inline-alert-dismiss" (click)="dismissGroupActionError()">Dismiss</button>
+  </div>
+}
+
 <div class="card">
   @if (loading()) {
     <div class="center">
@@ -26,9 +33,14 @@
         <span>{{ student()?.phone || '-' }}</span>
       </div>
 
-      <div class="row">
+      <div class="row row--group">
         <span class="label">Group</span>
-        <span>{{ student()?.group?.name || '-' }}</span>
+        <div class="row-group-body">
+          <span class="group-value">{{ student()?.group?.name || '-' }}</span>
+          <button type="button" mat-stroked-button class="group-action" (click)="openGroupPicker()">
+            {{ student()?.group ? 'Change group' : 'Add to group' }}
+          </button>
+        </div>
       </div>
     </div>
   }
@@ -94,3 +106,53 @@
     }
   </div>
 </div>
+
+@if (groupPickerOpen()) {
+  <div class="group-overlay" (click)="closeGroupPicker()">
+    <div class="group-panel card" (click)="$event.stopPropagation()">
+      <h2 class="group-panel-title">Group</h2>
+
+      @if (groupPickerError()) {
+        <p class="group-panel-error">{{ groupPickerError() }}</p>
+      }
+
+      @if (groupPickerGroups().length === 0) {
+        <p class="group-panel-hint">
+          No groups yet. Create one from Manage Groups on the dashboard.
+        </p>
+      } @else {
+        <label class="group-select-label" for="group-picker-select">Select group</label>
+        <select
+          id="group-picker-select"
+          class="group-select"
+          [value]="groupPickerSelectedId() ?? ''"
+          (change)="onPickerSelectChange($event)"
+        >
+          <option value="" disabled [selected]="groupPickerSelectedId() == null">Choose group…</option>
+          @for (g of groupPickerGroups(); track g.id) {
+            <option [value]="g.id">{{ g.name }}</option>
+          }
+        </select>
+      }
+
+      <div class="group-panel-actions">
+        @if (student()?.group) {
+          <button type="button" mat-button class="group-panel-remove" (click)="removeFromGroupInPicker()">
+            Remove from group
+          </button>
+        }
+        <span class="group-panel-actions-spacer"></span>
+        <button type="button" mat-button (click)="closeGroupPicker()">Cancel</button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="!canConfirmGroup()"
+          (click)="confirmGroupPicker()"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+}
