@@ -4,6 +4,15 @@
   --spacing-lg: 24px;
 
   --border-radius: 12px;
+  /** Stroked / text / filled Material buttons and matching native actions */
+  --app-button-radius: var(--border-radius);
+
+  --color-bg: #f6efe9;
+  --color-card: #ffffff;
+  --color-primary: #e8a9a1; // łososiowy
+  --color-primary-soft: #f3cfc9;
+  --color-text: #4a3f3f;
+  --color-muted: #8a7a7a;
 }
 
 body {
@@ -20,13 +29,17 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-:root {
-  --color-bg: #f6efe9;
-  --color-card: #ffffff;
-  --color-primary: #e8a9a1; // łososiowy
-  --color-primary-soft: #f3cfc9;
-  --color-text: #4a3f3f;
-  --color-muted: #8a7a7a;
+/**
+ * Angular Material (MDC): one corner radius for all non-circular buttons.
+ * Icon buttons and FABs stay fully round via Material defaults.
+ */
+button.mat-mdc-button-base:not(.mat-mdc-icon-button):not(.mat-mdc-fab-base):not(.mat-mdc-mini-fab-base),
+a.mat-mdc-button-base:not(.mat-mdc-icon-button):not(.mat-mdc-fab-base):not(.mat-mdc-mini-fab-base) {
+  border-radius: var(--app-button-radius);
+}
+
+button.mat-mdc-outlined-button .mdc-button__outline {
+  border-radius: inherit;
 }
 
 h1 {

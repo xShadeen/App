@@ -16,29 +16,41 @@
     <p class="error">Student not found.</p>
   } @else if (error()) {
     <p class="error">Something went wrong.</p>
-  } @else if (student()) {
+  } @else if (student(); as st) {
     <div class="student-info">
+      <div class="student-info-statusbar">
+        <span
+          class="status-badge"
+          [class.status-badge--active]="st.isActive"
+          [class.status-badge--inactive]="!st.isActive"
+          [attr.aria-label]="st.isActive ? 'Student is active' : 'Student is inactive'"
+          aria-live="polite"
+        >
+          {{ st.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+
       <div class="row">
         <span class="label">First name</span>
-        <span>{{ student()?.firstName }}</span>
+        <span>{{ st.firstName }}</span>
       </div>
 
       <div class="row">
         <span class="label">Email</span>
-        <span>{{ student()?.email || '-' }}</span>
+        <span>{{ st.email || '-' }}</span>
       </div>
 
       <div class="row">
         <span class="label">Phone</span>
-        <span>{{ student()?.phone || '-' }}</span>
+        <span>{{ st.phone || '-' }}</span>
       </div>
 
       <div class="row row--group">
         <span class="label">Group</span>
         <div class="row-group-body">
-          <span class="group-value">{{ student()?.group?.name || '-' }}</span>
+          <span class="group-value">{{ st.group?.name || '-' }}</span>
           <button type="button" mat-stroked-button class="group-action" (click)="openGroupPicker()">
-            {{ student()?.group ? 'Change group' : 'Add to group' }}
+            {{ st.group ? 'Change group' : 'Add to group' }}
           </button>
         </div>
       </div>
@@ -46,27 +58,31 @@
   }
 </div>
 
+@if (student()?.isActive) {
 <div class="lessons-section">
-  <div class="section-header">
-    <h2>Lessons</h2>
-    <div class="month-nav">
-      <button mat-icon-button class="nav-btn" (click)="prevMonth()">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-
-      <div class="month-pill">
-        {{ currentMonthLabel() }}
+  <div class="card lessons-card">
+    <div class="section-header">
+      <div class="section-header-top">
+        <h2 class="lessons-title">Lessons</h2>
+        <button type="button" mat-stroked-button class="group-action" (click)="openSmsModal()">SMS</button>
       </div>
+      <div class="month-nav">
+        <button mat-icon-button class="nav-btn" (click)="prevMonth()">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
 
-      <button mat-icon-button class="nav-btn" (click)="nextMonth()">
-        <mat-icon>chevron_right</mat-icon>
-      </button>
+        <div class="month-pill">
+          {{ currentMonthLabel() }}
+        </div>
+
+        <button mat-icon-button class="nav-btn" (click)="nextMonth()">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
     </div>
-  </div>
 
-  <div class="card">
     @if (lessons().length === 0) {
-      <p>No lessons for this month.</p>
+      <p class="lessons-empty">No lessons for this month.</p>
     } @else {
       <div class="lessons-list">
         <!-- HEADER -->
@@ -106,6 +122,7 @@
     }
   </div>
 </div>
+}
 
 @if (groupPickerOpen()) {
   <div class="group-overlay" (click)="closeGroupPicker()">
@@ -152,6 +169,24 @@
         >
           Save
         </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (smsModalOpen()) {
+  <div class="group-overlay" (click)="closeSmsModal()">
+    <div class="group-panel card" (click)="$event.stopPropagation()">
+      <h2 class="group-panel-title">SMS</h2>
+      <p class="group-panel-hint">
+        Send a text message to this student. Compose and send will be available when messaging is connected.
+      </p>
+      @if (student(); as s) {
+        <p class="group-panel-hint"><strong>{{ s.firstName }}</strong> — {{ s.phone }}</p>
+      }
+      <div class="group-panel-actions">
+        <span class="group-panel-actions-spacer"></span>
+        <button type="button" mat-button (click)="closeSmsModal()">Close</button>
       </div>
     </div>
   </div>

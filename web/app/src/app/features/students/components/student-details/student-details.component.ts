@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentsService } from '../../services/students.service';
 import { Student } from '../../models/student.model';
-import { catchError, of, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LessonsService } from '../../services/lessons.service';
@@ -12,6 +12,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { GroupsService } from '../../services/groups.service';
 import { Group } from '../../models/group.model';
+import { ToastService } from '../../../../core/toast/toast.service';
 
 @Component({
   standalone: true,
@@ -31,6 +32,7 @@ export class StudentDetailsComponent {
   private studentsService = inject(StudentsService);
   private lessonsService = inject(LessonsService);
   private groupsService = inject(GroupsService);
+  private toast = inject(ToastService);
 
   student = signal<Student | null>(null);
   lessons = signal<Lesson[]>([]);
@@ -45,6 +47,7 @@ export class StudentDetailsComponent {
   groupPickerSelectedId = signal<string | null>(null);
   groupPickerError = signal<string | null>(null);
   groupActionError = signal<string | null>(null);
+  smsModalOpen = signal(false);
 
   currentMonthLabel = computed(() => {
     const date = this.currentDate();
@@ -58,7 +61,7 @@ export class StudentDetailsComponent {
     const date = this.currentDate();
     const student = this.student();
 
-    if (!student) return null;
+    if (!student?.isActive) return null;
 
     return {
       studentId: student.id,
@@ -68,29 +71,38 @@ export class StudentDetailsComponent {
   });
 
   constructor() {
-    this.route.paramMap
+    const studentId$ = this.route.paramMap.pipe(
+      map((params) => Number(params.get('id'))),
+      distinctUntilChanged(),
+    );
+
+    combineLatest([studentId$, this.studentsService.students$])
       .pipe(
-        tap(() => {
-          this.loading.set(true);
-          this.error.set(false);
-          this.notFound.set(false);
-          this.student.set(null);
-        }),
-        switchMap((params) => {
-          const id = Number(params.get('id'));
-          return this.studentsService.getStudentById(id);
-        }),
-        catchError((err) => {
-          this.loading.set(false);
-
-          if (err.status === 404) {
-            this.notFound.set(true);
-          } else {
-            this.error.set(true);
+        tap(([id]) => {
+          const cur = this.student();
+          const idChanged = cur == null || cur.id !== id;
+          if (idChanged) {
+            this.loading.set(true);
+            this.error.set(false);
+            this.notFound.set(false);
+            this.student.set(null);
           }
-
-          return of(null);
         }),
+        switchMap(([id]) =>
+          this.studentsService.getStudentById(id).pipe(
+            catchError((err) => {
+              this.loading.set(false);
+
+              if (err.status === 404) {
+                this.notFound.set(true);
+              } else {
+                this.error.set(true);
+              }
+
+              return of(null);
+            }),
+          ),
+        ),
       )
       .subscribe((student) => {
         this.student.set(student);
@@ -99,7 +111,10 @@ export class StudentDetailsComponent {
 
     effect(() => {
       const params = this.lessonsParams();
-      if (!params) return;
+      if (!params) {
+        this.lessons.set([]);
+        return;
+      }
 
       this.lessonsService
         .getLessons(Number(params.studentId), params.year, params.month)
@@ -180,6 +195,7 @@ export class StudentDetailsComponent {
       },
       error: () => {
         this.groupActionError.set('Could not load groups');
+        this.toast.show('Could not load groups', 'error');
       },
     });
   }
@@ -211,10 +227,12 @@ export class StudentDetailsComponent {
       next: (student) => {
         this.student.set(student);
         this.closeGroupPicker();
+        this.toast.show('Group updated', 'success');
       },
       error: (err) => {
         const msg = err?.error?.message ?? 'Could not update group';
         this.groupPickerError.set(msg);
+        this.toast.show(msg, 'error');
       },
     });
   }
@@ -229,15 +247,25 @@ export class StudentDetailsComponent {
       next: (student) => {
         this.student.set(student);
         this.closeGroupPicker();
+        this.toast.show('Removed from group', 'success');
       },
       error: (err) => {
         const msg = err?.error?.message ?? 'Could not update group';
         this.groupPickerError.set(msg);
+        this.toast.show(msg, 'error');
       },
     });
   }
 
   dismissGroupActionError() {
     this.groupActionError.set(null);
+  }
+
+  openSmsModal() {
+    this.smsModalOpen.set(true);
+  }
+
+  closeSmsModal() {
+    this.smsModalOpen.set(false);
   }
 }

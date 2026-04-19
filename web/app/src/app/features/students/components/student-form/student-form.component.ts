@@ -18,6 +18,7 @@ import { phoneValidator } from '../../../../core/phone.validator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { GroupsService } from '../../services/groups.service';
 import { Group } from '../../models/group.model';
+import { ToastService } from '../../../../core/toast/toast.service';
 
 @Component({
   standalone: true,
@@ -32,6 +33,7 @@ export class StudentFormComponent {
 
   private studentsService = inject(StudentsService);
   private groupsService = inject(GroupsService);
+  private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private refresh$ = new Subject<void>();
   form = this.fb.nonNullable.group({
@@ -79,20 +81,31 @@ export class StudentFormComponent {
         this.firstNameInput?.nativeElement.focus();
       },
       'Failed to create student',
+      `Student “${value.firstName}” was added`,
     );
   }
 
-  private handleAction(request$: Observable<unknown>, onSuccess: () => void, errorMessage: string) {
+  private handleAction(
+    request$: Observable<unknown>,
+    onSuccess: () => void,
+    errorMessage: string,
+    successToast?: string,
+  ) {
     this.actionError.set(null);
-    this.actionLoading.set(true); // ⭐ DODAJ TO
+    this.actionLoading.set(true);
 
     request$
       .pipe(
         tap(() => {
           onSuccess();
+          if (successToast) {
+            this.toast.show(successToast, 'success');
+          }
         }),
         catchError((err) => {
-          this.actionError.set(err?.error?.message || errorMessage);
+          const msg = err?.error?.message || errorMessage;
+          this.actionError.set(msg);
+          this.toast.show(msg, 'error');
           return EMPTY;
         }),
         finalize(() => this.actionLoading.set(false)),

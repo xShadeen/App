@@ -109,6 +109,81 @@
   opacity: 1;
 }
 
+.sidebar-search-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5c4545;
+  margin-bottom: 6px;
+}
+
+.sidebar-search-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.sidebar-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: #7a4a4a;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-search-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.sidebar-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px 11px 42px;
+  border: 1px solid #c98a8a;
+  border-radius: 10px;
+  font-size: 14px;
+  /* Solid card on pink sidebar — clearly different from #f5d0d0 */
+  background: #ffffff;
+  color: #3a3030;
+  box-shadow: inset 0 1px 2px rgba(80, 40, 40, 0.06);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.sidebar-search-input::placeholder {
+  color: #8a6a6a;
+}
+
+.sidebar-search-input:hover {
+  border-color: #b07070;
+  background: #fffafa;
+}
+
+.sidebar-search-input:focus {
+  outline: none;
+  border-color: #a05050;
+  background: #ffffff;
+  box-shadow:
+    inset 0 1px 2px rgba(80, 40, 40, 0.06),
+    0 0 0 3px rgba(232, 154, 154, 0.45);
+}
+
+.nav-empty {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  padding: 8px 4px 4px;
+}
+
 /* ITEM STUDENTA */
 .nav-item {
   text-decoration: none;
@@ -159,7 +234,7 @@
 }
 .sync-btn {
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: var(--app-button-radius);
   border: none;
   background: #e89a9a;
   color: white;

@@ -213,7 +213,36 @@ h1 {
 .section-header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+}
+
+.section-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lessons-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text, #4a3f3f);
+}
+
+.lessons-section {
+  margin-top: var(--spacing-lg, 24px);
+}
+
+.lessons-card .section-header {
+  margin: 0 0 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.lessons-empty {
+  margin: 0;
+  color: var(--color-muted);
 }
 
 .month-nav {
@@ -244,6 +273,34 @@ h1 {
   transform: scale(1.05);
 }
 
+.student-info-statusbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: -4px 0 4px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+.status-badge--active {
+  color: #1b5e20;
+  background: #e8f5e9;
+}
+
+.status-badge--inactive {
+  color: #b71c1c;
+  background: #ffebee;
+}
+
 .row--group {
   align-items: center;
 }
@@ -266,7 +323,7 @@ h1 {
   white-space: nowrap;
 }
 
-.row--group .group-action {
+.group-action {
   flex-shrink: 0;
 }
 

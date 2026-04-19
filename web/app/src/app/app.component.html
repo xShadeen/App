@@ -14,16 +14,44 @@
 
         @if (studentsOpen()) {
           <div class="nav-sublist" [class.open]="studentsOpen()">
-            @for (student of activeStudents(); track student.id) {
-              <a
-                class="nav-item"
-                [routerLink]="['/students', student.id]"
-                routerLinkActive="active"
-              >
-                <span>{{ student.firstName }}</span>
+            @if (sidebarStudentCount() > 0) {
+              <label class="sidebar-search-label" for="sidebar-student-search"></label>
+              <div class="sidebar-search-wrap">
+                <span class="sidebar-search-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M21 21l-4.3-4.3" />
+                  </svg>
+                </span>
+                <input
+                  id="sidebar-student-search"
+                  type="search"
+                  class="sidebar-search-input"
+                  aria-label="Search students by name"
+                  placeholder="Search by name…"
+                  autocomplete="off"
+                  [value]="sidebarStudentSearch()"
+                  (input)="onSidebarSearchInput($event)"
+                />
+              </div>
+            }
 
-                <span class="delete-btn" (click)="onDeleteStudentClick(student)"> ✕ </span>
-              </a>
+            @if (sidebarStudentCount() === 0) {
+              <span class="nav-empty">No active students</span>
+            } @else if (activeStudents().length === 0) {
+              <span class="nav-empty">No matches</span>
+            } @else {
+              @for (student of activeStudents(); track student.id) {
+                <a
+                  class="nav-item"
+                  [routerLink]="['/students', student.id]"
+                  routerLinkActive="active"
+                >
+                  <span>{{ student.firstName }}</span>
+
+                  <span class="delete-btn" (click)="onDeleteStudentClick($event, student)"> ✕ </span>
+                </a>
+              }
             }
           </div>
         }
@@ -42,6 +70,8 @@
     <router-outlet></router-outlet>
   </main>
 </div>
+
+<app-toast-container />
 
 <app-confirm-modal
   [isOpen]="isDeleteModalOpen()"

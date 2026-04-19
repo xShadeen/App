@@ -1,33 +1,44 @@
 <h1>Groups</h1>
 
-<div class="groups-container">
-  @for (group of groups(); track group.id) {
-    <div class="group-card">
-      <!-- HEADER -->
-      <div class="group-header" (click)="selectGroup(group)">
-        <span class="group-name">{{ group.name }}</span>
+<div class="groups-page">
+  @if (groups().length === 0) {
+    <p class="empty">No groups yet</p>
+  } @else {
+    <div class="groups-container">
+      @for (group of groups(); track group.id) {
+        <section class="group-block">
+          <button type="button" class="group-header" (click)="selectGroup(group)">
+            <span class="group-name">{{ group.name }}</span>
+            <span class="group-header-right">
+              <span class="group-count">{{ group.students.length }} students</span>
+              <span class="group-chevron" [class.open]="selectedGroup()?.id === group.id">▼</span>
+            </span>
+          </button>
 
-        <span class="group-count"> {{ group.students.length }} students </span>
-      </div>
-
-      <!-- STUDENTS -->
-      @if (selectedGroup()?.id === group.id) {
-        <div class="students-list">
-          @for (student of group.students; track student.id) {
-            <div class="student-row">
-              <span class="student-name">
-                {{ student.firstName }}
-              </span>
-
-              <button
-                class="remove-btn"
-                (click)="removeFromGroup(student.id); $event.stopPropagation()"
-              >
-                Remove
-              </button>
-            </div>
+          @if (selectedGroup()?.id === group.id) {
+            @if (group.students.length === 0) {
+              <p class="empty-group">No students in this group</p>
+            } @else {
+              <div class="list">
+                @for (student of group.students; track student.id) {
+                  <div class="student-row">
+                    <div class="left">
+                      <a [routerLink]="['/students', student.id]" class="name-link">{{ student.firstName }}</a>
+                      <div class="meta">Student details and lessons</div>
+                    </div>
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      (click)="removeFromGroup($event, student.id)"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                }
+              </div>
+            }
           }
-        </div>
+        </section>
       }
     </div>
   }

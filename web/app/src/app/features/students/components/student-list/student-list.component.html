@@ -1,14 +1,33 @@
 <div class="student-list">
-  <h2 class="title">Deleted Students</h2>
+  <h2 class="title">{{ listTitle() }}</h2>
 
-  @if (students().length > 0) {
+  @if (studentsState().length > 0) {
+    <div class="search-row">
+      <label class="search-label" for="student-search">Search by name</label>
+      <input
+        id="student-search"
+        type="search"
+        class="search-input"
+        aria-label="Search students by name"
+        placeholder="Type a name…"
+        [value]="searchQuery()"
+        (input)="onSearchInput($event)"
+      />
+    </div>
+  }
+
+  @if (studentsState().length === 0) {
+    <p class="empty">{{ isInactiveList() ? 'No inactive students' : 'No active students' }}</p>
+  } @else if (displayedStudents().length === 0) {
+    <p class="empty">No students match your search.</p>
+  } @else {
     <div class="list">
-      @for (student of students(); track student.id) {
-        <div class="student-row">
+      @for (student of displayedStudents(); track student.id) {
+        <div class="student-row" [class.student-row--highlight]="isHighlighted(student)">
           <div class="left">
-            <div class="name">
+            <button type="button" class="name-link" (click)="goToDetails(student)">
               {{ student.firstName }}
-            </div>
+            </button>
 
             <div class="meta">
               @if (student.deletedAt) {
@@ -17,22 +36,23 @@
             </div>
           </div>
 
-          <button
-            class="restore-btn"
-            (click)="onRestore(student)"
-            [disabled]="restoringIds().includes(student.id)"
-          >
-            @if (restoringIds().includes(student.id)) {
-              Restoring...
-            } @else {
-              Restore
-            }
-          </button>
+          @if (isInactiveList()) {
+            <button
+              type="button"
+              class="restore-btn"
+              (click)="onRestore(student)"
+              [disabled]="restoringIds().includes(student.id)"
+            >
+              @if (restoringIds().includes(student.id)) {
+                Restoring...
+              } @else {
+                Restore
+              }
+            </button>
+          }
         </div>
       }
     </div>
-  } @else {
-    <p class="empty">No deleted students</p>
   }
 </div>
 <app-confirm-modal
