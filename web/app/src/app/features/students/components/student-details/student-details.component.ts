@@ -9,18 +9,28 @@ import { LessonsService } from '../../services/lessons.service';
 import { Lesson } from '../../models/lesson.model';
 import { DatePipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { GroupsService } from '../../services/groups.service';
+import { Group } from '../../models/group.model';
 
 @Component({
   standalone: true,
   selector: 'app-student-details',
   templateUrl: './student-details.component.html',
   styleUrls: ['./student-details.component.scss'],
-  imports: [MatCardModule, MatProgressSpinnerModule, DatePipe, MatIcon],
+  imports: [
+    MatCardModule,
+    MatProgressSpinnerModule,
+    DatePipe,
+    MatIcon,
+    MatButtonModule,
+  ],
 })
 export class StudentDetailsComponent {
   private route = inject(ActivatedRoute);
   private studentsService = inject(StudentsService);
   private lessonsService = inject(LessonsService);
+  private groupsService = inject(GroupsService);
 
   student = signal<Student | null>(null);
   lessons = signal<Lesson[]>([]);
@@ -29,6 +39,13 @@ export class StudentDetailsComponent {
   notFound = signal(false);
   currentDate = signal(new Date());
   editingLessonId = signal<number | null>(null);
+
+  groupPickerOpen = signal(false);
+  groupPickerGroups = signal<Group[]>([]);
+  groupPickerSelectedId = signal<string | null>(null);
+  groupPickerError = signal<string | null>(null);
+  groupActionError = signal<string | null>(null);
+
   currentMonthLabel = computed(() => {
     const date = this.currentDate();
     return date.toLocaleDateString('en-US', {
@@ -80,7 +97,6 @@ export class StudentDetailsComponent {
         this.loading.set(false);
       });
 
-    // 🔥 lessons effect
     effect(() => {
       const params = this.lessonsParams();
       if (!params) return;
@@ -88,7 +104,6 @@ export class StudentDetailsComponent {
       this.lessonsService
         .getLessons(Number(params.studentId), params.year, params.month)
         .subscribe((lessons) => {
-          // console.log('Lessons loaded:', lessons);
           this.lessons.set(lessons);
         });
     });
@@ -108,7 +123,6 @@ export class StudentDetailsComponent {
   togglePaid(lesson: Lesson) {
     const previous = lesson.paid;
 
-    // optimistic update
     lesson.paid = !lesson.paid;
 
     this.lessonsService.markAsPaid(lesson.id).subscribe({
@@ -116,7 +130,6 @@ export class StudentDetailsComponent {
         console.log('Updated successfully');
       },
       error: () => {
-        // rollback jeśli coś pójdzie nie tak
         lesson.paid = previous;
         console.error('Failed to update');
       },
@@ -150,5 +163,81 @@ export class StudentDetailsComponent {
         console.error('Failed to update notes');
       },
     });
+  }
+
+  openGroupPicker() {
+    const s = this.student();
+    if (!s) return;
+
+    this.groupActionError.set(null);
+    this.groupPickerError.set(null);
+
+    this.groupsService.getGroups().subscribe({
+      next: (groups) => {
+        this.groupPickerGroups.set(groups);
+        this.groupPickerSelectedId.set(s.group?.id ?? null);
+        this.groupPickerOpen.set(true);
+      },
+      error: () => {
+        this.groupActionError.set('Could not load groups');
+      },
+    });
+  }
+
+  closeGroupPicker() {
+    this.groupPickerOpen.set(false);
+    this.groupPickerError.set(null);
+  }
+
+  onPickerSelectChange(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    this.groupPickerSelectedId.set(value === '' ? null : value);
+  }
+
+  canConfirmGroup(): boolean {
+    const groups = this.groupPickerGroups();
+    const sel = this.groupPickerSelectedId();
+    return groups.length === 0 ? false : sel != null;
+  }
+
+  confirmGroupPicker() {
+    const s = this.student();
+    if (!s || !this.canConfirmGroup()) return;
+
+    const groupId = this.groupPickerSelectedId();
+    this.groupPickerError.set(null);
+
+    this.studentsService.updateStudentGroup(s.id, groupId).subscribe({
+      next: (student) => {
+        this.student.set(student);
+        this.closeGroupPicker();
+      },
+      error: (err) => {
+        const msg = err?.error?.message ?? 'Could not update group';
+        this.groupPickerError.set(msg);
+      },
+    });
+  }
+
+  removeFromGroupInPicker() {
+    const s = this.student();
+    if (!s) return;
+
+    this.groupPickerError.set(null);
+
+    this.studentsService.updateStudentGroup(s.id, null).subscribe({
+      next: (student) => {
+        this.student.set(student);
+        this.closeGroupPicker();
+      },
+      error: (err) => {
+        const msg = err?.error?.message ?? 'Could not update group';
+        this.groupPickerError.set(msg);
+      },
+    });
+  }
+
+  dismissGroupActionError() {
+    this.groupActionError.set(null);
   }
 }

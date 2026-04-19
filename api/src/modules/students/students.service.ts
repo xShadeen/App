@@ -64,10 +64,22 @@ export const studentsService = {
   },
 
   updateGroup: async (id: number, groupId?: string | null) => {
+    if (groupId) {
+      const exists = await prisma.group.findUnique({ where: { id: groupId } });
+      if (!exists) {
+        const err: Error & { status?: number } = new Error("Group not found");
+        err.status = 400;
+        throw err;
+      }
+    }
+
     return prisma.student.update({
       where: { id },
       data: {
         groupId: groupId ?? null,
+      },
+      include: {
+        group: true,
       },
     });
   },
