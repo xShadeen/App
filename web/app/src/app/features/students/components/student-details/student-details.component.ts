@@ -2,7 +2,16 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentsService } from '../../services/students.service';
 import { Student } from '../../models/student.model';
-import { catchError, combineLatest, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  distinctUntilChanged,
+  forkJoin,
+  map,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LessonsService } from '../../services/lessons.service';
@@ -13,6 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { GroupsService } from '../../services/groups.service';
 import { Group } from '../../models/group.model';
 import { ToastService } from '../../../../core/toast/toast.service';
+import { SmsService } from '../../services/sms.service';
 
 @Component({
   standalone: true,
@@ -33,6 +43,7 @@ export class StudentDetailsComponent {
   private lessonsService = inject(LessonsService);
   private groupsService = inject(GroupsService);
   private toast = inject(ToastService);
+  private smsService = inject(SmsService);
 
   student = signal<Student | null>(null);
   lessons = signal<Lesson[]>([]);
@@ -48,6 +59,14 @@ export class StudentDetailsComponent {
   groupPickerError = signal<string | null>(null);
   groupActionError = signal<string | null>(null);
   smsModalOpen = signal(false);
+  smsDraftText = signal('');
+  smsDraftLoading = signal(false);
+  smsSending = signal(false);
+
+  smsCanSend = computed(() => {
+    const s = this.student();
+    return !!(s?.phone?.trim() && this.smsDraftText().trim());
+  });
 
   currentMonthLabel = computed(() => {
     const date = this.currentDate();
@@ -262,10 +281,95 @@ export class StudentDetailsComponent {
   }
 
   openSmsModal() {
+    const s = this.student();
+    if (!s) return;
+
     this.smsModalOpen.set(true);
+    this.smsDraftLoading.set(true);
+    this.smsDraftText.set('');
+
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth() + 1;
+    const prevRef = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevYear = prevRef.getFullYear();
+    const prevMonth = prevRef.getMonth() + 1;
+
+    forkJoin({
+      current: this.lessonsService.getLessons(s.id, curYear, curMonth),
+      previous: this.lessonsService.getLessons(s.id, prevYear, prevMonth),
+    }).subscribe({
+      next: ({ current, previous }) => {
+        const unpaid = [...previous, ...current].filter((lesson) => !lesson.paid);
+        unpaid.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const lines = unpaid.map((lesson) => this.formatLessonLineForSms(lesson));
+        const middle =
+          lines.length > 0
+            ? lines.join('\n')
+            : 'Brak nieopłaconych lekcji w bieżącym i poprzednim miesiącu.';
+        this.smsDraftText.set(this.buildDefaultSmsBody(middle));
+        this.smsDraftLoading.set(false);
+      },
+      error: () => {
+        this.smsDraftText.set(
+          this.buildDefaultSmsBody(
+            'Nie udało się wczytać listy lekcji. Uzupełnij ręcznie.',
+          ),
+        );
+        this.smsDraftLoading.set(false);
+      },
+    });
   }
 
   closeSmsModal() {
+    if (this.smsSending()) return;
     this.smsModalOpen.set(false);
+  }
+
+  sendSms() {
+    const s = this.student();
+    const message = this.smsDraftText().trim();
+    if (!s?.phone?.trim() || !message) {
+      this.toast.show('Phone number and message are required', 'error');
+      return;
+    }
+
+    this.smsSending.set(true);
+    this.smsService.send(s.phone, message).subscribe({
+      next: () => {
+        this.smsSending.set(false);
+        this.toast.show('SMS sent', 'success');
+        this.closeSmsModal();
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.smsSending.set(false);
+        const msg = err?.error?.error ?? 'Could not send SMS';
+        this.toast.show(msg, 'error');
+      },
+    });
+  }
+
+  onSmsDraftInput(event: Event) {
+    this.smsDraftText.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  private buildDefaultSmsBody(middleBlock: string): string {
+    return [
+      'Hola przypominam o płatności za lekcje:',
+      '',
+      middleBlock,
+      '',
+      'Wiadomość wygenerowana automatycznie. Hiszpańska Oliwka',
+    ].join('\n');
+  }
+
+  private formatLessonLineForSms(lesson: Lesson): string {
+    const d = new Date(lesson.date);
+    const dateStr = d.toLocaleDateString('pl-PL', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+    return `• ${dateStr}`;
   }
 }

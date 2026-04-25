@@ -366,6 +366,64 @@ h1 {
   max-width: 400px;
 }
 
+.group-panel--sms {
+  max-width: 520px;
+}
+
+.group-panel-hint--tight {
+  margin-bottom: 8px;
+}
+
+.sms-draft-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #444;
+}
+
+.sms-draft-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.sms-draft-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 8px;
+}
+
+.sms-draft {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 180px;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #111;
+  resize: vertical;
+  background: #fafafa;
+}
+
+.sms-draft:focus {
+  outline: none;
+  border-color: #888;
+  background: #fff;
+}
+
+.sms-draft:disabled {
+  opacity: 0.85;
+  cursor: wait;
+}
+
 .group-panel-title {
   margin: 0 0 16px;
   font-size: 1.25rem;

@@ -176,17 +176,46 @@
 
 @if (smsModalOpen()) {
   <div class="group-overlay" (click)="closeSmsModal()">
-    <div class="group-panel card" (click)="$event.stopPropagation()">
+    <div class="group-panel group-panel--sms card" (click)="$event.stopPropagation()">
       <h2 class="group-panel-title">SMS</h2>
       <p class="group-panel-hint">
-        Send a text message to this student. Compose and send will be available when messaging is connected.
+        Send a text message to this student. The message is sent with Twilio to the number on file.
       </p>
       @if (student(); as s) {
-        <p class="group-panel-hint"><strong>{{ s.firstName }}</strong> — {{ s.phone }}</p>
+        <p class="group-panel-hint group-panel-hint--tight"><strong>{{ s.firstName }}</strong> — {{ s.phone }}</p>
       }
+      <label class="sms-draft-label" for="sms-draft-textarea">Treść wiadomości</label>
+      <div class="sms-draft-wrap">
+        @if (smsDraftLoading()) {
+          <div class="sms-draft-loading" aria-busy="true">
+            <mat-spinner diameter="32"></mat-spinner>
+          </div>
+        }
+        <textarea
+          id="sms-draft-textarea"
+          class="sms-draft"
+          rows="10"
+          [disabled]="smsDraftLoading() || smsSending()"
+          [value]="smsDraftText()"
+          (input)="onSmsDraftInput($event)"
+        ></textarea>
+      </div>
       <div class="group-panel-actions">
         <span class="group-panel-actions-spacer"></span>
-        <button type="button" mat-button (click)="closeSmsModal()">Close</button>
+        <button type="button" mat-button [disabled]="smsSending()" (click)="closeSmsModal()">Close</button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="smsDraftLoading() || smsSending() || !smsCanSend()"
+          (click)="sendSms()"
+        >
+          @if (smsSending()) {
+            Sending…
+          } @else {
+            Send SMS
+          }
+        </button>
       </div>
     </div>
   </div>

@@ -19,10 +19,9 @@ export class CalendarService {
 
     const events = await calendar.events.list({
       calendarId: process.env.GOOGLE_CALENDAR_ID!,
-      maxResults: 50,
       singleEvents: true,
       orderBy: "startTime",
-      timeMin: new Date("2026-03-01").toISOString(),
+      timeMin: new Date("2026-01-01").toISOString(),
     });
 
     let created = 0;

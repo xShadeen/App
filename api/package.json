@@ -17,7 +17,8 @@
     "express": "^5.2.1",
     "googleapis": "^171.4.0",
     "pg": "^8.18.0",
-    "prisma": "^6.19.2"
+    "prisma": "^6.19.2",
+    "twilio": "^5.13.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
