@@ -1,4 +1,4 @@
-import { google } from "googleapis";
+import { google, calendar_v3 } from "googleapis";
 import path from "path";
 import { prisma } from "../../prisma";
 
@@ -17,52 +17,85 @@ export class CalendarService {
       auth,
     });
 
-    const events = await calendar.events.list({
-      calendarId: process.env.GOOGLE_CALENDAR_ID!,
-      singleEvents: true,
-      orderBy: "startTime",
-      timeMin: new Date("2026-01-01").toISOString(),
+    const now = new Date();
+
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const twoMonthsAhead = new Date(now);
+    twoMonthsAhead.setMonth(twoMonthsAhead.getMonth() + 2);
+
+    const timeMin = (
+      process.env.CALENDAR_SYNC_FROM
+        ? new Date(process.env.CALENDAR_SYNC_FROM)
+        : startOfYear
+    ).toISOString();
+
+    const timeMax = (
+      process.env.CALENDAR_SYNC_TO
+        ? new Date(process.env.CALENDAR_SYNC_TO)
+        : twoMonthsAhead
+    ).toISOString();
+
+    const allEvents: calendar_v3.Schema$Event[] = [];
+    let pageToken: string | undefined = undefined;
+
+    do {
+      const res: { data: calendar_v3.Schema$Events } = await calendar.events.list({
+        calendarId: process.env.GOOGLE_CALENDAR_ID!,
+        singleEvents: true,
+        orderBy: "startTime",
+        timeMin,
+        timeMax,
+        maxResults: 2500,
+        pageToken,
+      });
+      allEvents.push(...(res.data.items ?? []));
+      pageToken = res.data.nextPageToken ?? undefined;
+    } while (pageToken);
+
+    const students = await prisma.student.findMany({
+      select: { id: true, firstName: true },
     });
+    const studentByName = new Map(students.map((s) => [s.firstName, s.id]));
 
-    let created = 0;
+    const eventIds = allEvents
+      .map((e) => e.id)
+      .filter((id): id is string => typeof id === "string");
 
-    for (const event of events.data.items ?? []) {
-      if (!event.summary) continue;
+    const existing = await prisma.lesson.findMany({
+      where: { googleEventId: { in: eventIds } },
+      select: { googleEventId: true },
+    });
+    const existingIds = new Set(existing.map((l) => l.googleEventId));
 
-      const studentName = event.summary.trim();
+    const toCreate: { date: Date; googleEventId: string; studentId: number }[] = [];
 
-      const student = await prisma.student.findFirst({
-        where: { firstName: studentName },
-      });
+    for (const event of allEvents) {
+      if (!event.summary || !event.id) continue;
+      if (existingIds.has(event.id)) continue;
 
-      if (!student) {
-        continue;
-      }
-
-      const exists = await prisma.lesson.findUnique({
-        where: { googleEventId: event.id! },
-      });
-
-      if (exists) continue;
+      const studentId = studentByName.get(event.summary.trim());
+      if (studentId === undefined) continue;
 
       const date = event.start?.dateTime ?? event.start?.date;
-
       if (!date) continue;
 
-      await prisma.lesson.create({
-        data: {
-          date: new Date(date),
-          googleEventId: event.id!,
-          studentId: student.id,
-        },
+      toCreate.push({
+        date: new Date(date),
+        googleEventId: event.id,
+        studentId,
       });
+    }
 
-      created++;
+    if (toCreate.length > 0) {
+      await prisma.lesson.createMany({
+        data: toCreate,
+        skipDuplicates: true,
+      });
     }
 
     return {
-      eventsFetched: events.data.items?.length ?? 0,
-      lessonsCreated: created,
+      eventsFetched: allEvents.length,
+      lessonsCreated: toCreate.length,
     };
   }
 }

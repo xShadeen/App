@@ -32,7 +32,7 @@ smsRouter.post("/send-sms", async (req, res) => {
     const client = twilio(accountSid, authToken);
     const response = await client.messages.create({
       messagingServiceSid,
-      to: "+48791790090",
+      to: normalized,
       body: message,
     });
     console.log("SMS sent:", response.sid);
