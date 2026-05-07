@@ -10,34 +10,33 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Student {
-  id        Int     @id @default(autoincrement())
-  firstName String  @unique
+  id        Int       @id @default(autoincrement())
+  firstName String    @unique
   email     String?
-  phone     String  @unique
-  isActive  Boolean @default(true)
+  phone     String    @unique
+  isActive  Boolean   @default(true)
   deletedAt DateTime?
   lessons   Lesson[]
-  groupId String?
-  group   Group? @relation(fields: [groupId], references: [id])
+  groupId   String?
+  // Dodajemy onDelete: SetNull lub Cascade, zależnie czy chcesz usunąć studenta gdy zniknie grupa
+  group     Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
 }
 
 model Lesson {
   id            Int      @id @default(autoincrement())
   date          DateTime
   paid          Boolean  @default(false)
-
   googleEventId String   @unique
-
   notes         String?
-
   createdAt     DateTime @default(now())
 
-  studentId Int
-  student   Student @relation(fields: [studentId], references: [id])
+  studentId     Int
+  // KLUCZOWA ZMIANA: Dodajemy onDelete: Cascade
+  // Teraz, gdy usuniesz Studenta, wszystkie jego Lekcje zostaną usunięte automatycznie.
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model Group {

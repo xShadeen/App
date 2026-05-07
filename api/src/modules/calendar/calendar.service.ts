@@ -4,10 +4,21 @@ import { prisma } from "../../prisma";
 
 export class CalendarService {
   async sync() {
+    const googleServiceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    const googleCalendarId = process.env.GOOGLE_CALENDAR_ID;
+
+    if (!googleServiceAccountKey) {
+      throw new Error("Missing GOOGLE_SERVICE_ACCOUNT_KEY in environment.");
+    }
+
+    if (!googleCalendarId) {
+      throw new Error("Missing GOOGLE_CALENDAR_ID in environment.");
+    }
+
     const auth = new google.auth.GoogleAuth({
       keyFile: path.join(
         process.cwd(),
-        process.env.GOOGLE_SERVICE_ACCOUNT_KEY!,
+        googleServiceAccountKey,
       ),
       scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
     });
@@ -40,7 +51,7 @@ export class CalendarService {
 
     do {
       const res: { data: calendar_v3.Schema$Events } = await calendar.events.list({
-        calendarId: process.env.GOOGLE_CALENDAR_ID!,
+        calendarId: googleCalendarId,
         singleEvents: true,
         orderBy: "startTime",
         timeMin,
@@ -52,20 +63,24 @@ export class CalendarService {
       pageToken = res.data.nextPageToken ?? undefined;
     } while (pageToken);
 
-    const students = await prisma.student.findMany({
+    const students = (await prisma.student.findMany({
       select: { id: true, firstName: true },
-    });
-    const studentByName = new Map(students.map((s) => [s.firstName, s.id]));
+    })) as Array<{ id: number; firstName: string }>;
+    const studentByName = new Map<string, number>(
+      students.map((s: { id: number; firstName: string }) => [s.firstName, s.id]),
+    );
 
     const eventIds = allEvents
       .map((e) => e.id)
       .filter((id): id is string => typeof id === "string");
 
-    const existing = await prisma.lesson.findMany({
+    const existing = (await prisma.lesson.findMany({
       where: { googleEventId: { in: eventIds } },
       select: { googleEventId: true },
-    });
-    const existingIds = new Set(existing.map((l) => l.googleEventId));
+    })) as Array<{ googleEventId: string }>;
+    const existingIds = new Set(
+      existing.map((l: { googleEventId: string }) => l.googleEventId),
+    );
 
     const toCreate: { date: Date; googleEventId: string; studentId: number }[] = [];
 

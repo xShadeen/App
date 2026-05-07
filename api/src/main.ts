@@ -1,12 +1,13 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import { Pool } from "pg";
+import { prisma } from "./prisma";
 import { studentsRouter } from "./modules/students/students.routes";
 import { lessonsRouter } from "./modules/lessons/lessons.routes";
 import calendarRoutes from "./modules/calendar/calendar.routes";
 import groupsRoutes from "./modules/groups/groups.routes";
 import { smsRouter } from "./modules/sms/sms.routes";
+
 const app = express();
 
 app.use(
@@ -27,12 +28,11 @@ app.use("/calendar", calendarRoutes);
 app.use("/groups", groupsRoutes);
 app.use(smsRouter);
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-pool
-  .query("SELECT 1")
-  .then(() => console.log("DB OK"))
-  .catch((err) => console.error("DB ERROR", err));
+prisma.$queryRaw`SELECT 1`
+  .then(() => console.log("Prisma: Baza danych Supabase podłączona!"))
+  .catch((err: unknown) =>
+    console.error("Prisma: Błąd połączenia z bazą", err),
+  );
 
 app.listen(3000, () => {
   console.log("API listening on http://localhost:3000");
