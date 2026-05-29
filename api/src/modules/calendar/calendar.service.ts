@@ -63,42 +63,59 @@ export class CalendarService {
       pageToken = res.data.nextPageToken ?? undefined;
     } while (pageToken);
 
-    const students = (await prisma.student.findMany({
-      select: { id: true, firstName: true },
-    })) as Array<{ id: number; firstName: string }>;
-    const studentByName = new Map<string, number>(
-      students.map((s: { id: number; firstName: string }) => [s.firstName, s.id]),
-    );
+    const students = await prisma.student.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        groupId: true,
+        group: { select: { name: true } },
+      },
+    });
 
     const eventIds = allEvents
       .map((e) => e.id)
       .filter((id): id is string => typeof id === "string");
 
-    const existing = (await prisma.lesson.findMany({
+    const existing = await prisma.lesson.findMany({
       where: { googleEventId: { in: eventIds } },
-      select: { googleEventId: true },
-    })) as Array<{ googleEventId: string }>;
-    const existingIds = new Set(
-      existing.map((l: { googleEventId: string }) => l.googleEventId),
+      select: { googleEventId: true, studentId: true },
+    });
+    const existingKeys = new Set(
+      existing.map((l) => `${l.googleEventId}:${l.studentId}`),
     );
 
     const toCreate: { date: Date; googleEventId: string; studentId: number }[] = [];
 
     for (const event of allEvents) {
       if (!event.summary || !event.id) continue;
-      if (existingIds.has(event.id)) continue;
 
-      const studentId = studentByName.get(event.summary.trim());
-      if (studentId === undefined) continue;
+      const summary = event.summary.trim();
+      const matchedStudentIds = new Set<number>();
+
+      for (const student of students) {
+        if (student.group?.name === summary) {
+          matchedStudentIds.add(student.id);
+        } else if (!student.groupId && student.firstName === summary) {
+          matchedStudentIds.add(student.id);
+        }
+      }
+
+      if (matchedStudentIds.size === 0) continue;
 
       const date = event.start?.dateTime ?? event.start?.date;
       if (!date) continue;
 
-      toCreate.push({
-        date: new Date(date),
-        googleEventId: event.id,
-        studentId,
-      });
+      for (const studentId of matchedStudentIds) {
+        const key = `${event.id}:${studentId}`;
+        if (existingKeys.has(key)) continue;
+
+        toCreate.push({
+          date: new Date(date),
+          googleEventId: event.id,
+          studentId,
+        });
+        existingKeys.add(key);
+      }
     }
 
     if (toCreate.length > 0) {

@@ -29,11 +29,13 @@ model Lesson {
   id            Int      @id @default(autoincrement())
   date          DateTime
   paid          Boolean  @default(false)
-  googleEventId String   @unique
+  googleEventId String
   notes         String?
   createdAt     DateTime @default(now())
 
   studentId     Int
+
+  @@unique([googleEventId, studentId])
   // KLUCZOWA ZMIANA: Dodajemy onDelete: Cascade
   // Teraz, gdy usuniesz Studenta, wszystkie jego Lekcje zostaną usunięte automatycznie.
   student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
