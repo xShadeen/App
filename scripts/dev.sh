@@ -5,7 +5,13 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 echo "==> Pulling latest from GitHub..."
-git pull
+git pull --ff-only
+
+echo "==> Installing API dependencies..."
+(cd "$ROOT/api" && npm install)
+
+echo "==> Installing Web dependencies..."
+(cd "$ROOT/web/app" && npm install)
 
 API_PID=""
 WEB_PID=""
@@ -30,4 +36,5 @@ echo "==> Starting web app (http://localhost:4200)..."
 WEB_PID=$!
 
 echo "==> Both servers running. Press Ctrl+C to stop."
+
 wait
