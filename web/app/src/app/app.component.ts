@@ -47,8 +47,9 @@ export class AppComponent {
 
     if (!hasSynced) {
       this.calendarService.syncCalendar().subscribe({
-        next: () => {
+        next: (result) => {
           localStorage.setItem('calendarSynced', 'true');
+          this.calendarService.notifySyncCompleted(result);
         },
         error: (err) => {
           console.error('Calendar sync failed', err);
@@ -99,9 +100,15 @@ export class AppComponent {
     this.isSyncing.set(true);
 
     this.calendarService.syncCalendar().subscribe({
-      next: () => {
+      next: (result) => {
         this.isSyncing.set(false);
-        this.toast.show('Calendar synced successfully', 'success');
+        this.calendarService.notifySyncCompleted(result);
+        const parts = [
+          result.lessonsCreated > 0 ? `${result.lessonsCreated} added` : '',
+          result.lessonsDeleted > 0 ? `${result.lessonsDeleted} removed` : '',
+        ].filter(Boolean);
+        const detail = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+        this.toast.show(`Calendar synced successfully${detail}`, 'success');
       },
       error: () => {
         this.isSyncing.set(false);

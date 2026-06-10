@@ -31,8 +31,7 @@ export class CalendarService {
     const now = new Date();
 
     const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const twoMonthsAhead = new Date(now);
-    twoMonthsAhead.setMonth(twoMonthsAhead.getMonth() + 2);
+    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
 
     const timeMin = (
       process.env.CALENDAR_SYNC_FROM
@@ -43,7 +42,7 @@ export class CalendarService {
     const timeMax = (
       process.env.CALENDAR_SYNC_TO
         ? new Date(process.env.CALENDAR_SYNC_TO)
-        : twoMonthsAhead
+        : endOfYear
     ).toISOString();
 
     const allEvents: calendar_v3.Schema$Event[] = [];
@@ -72,21 +71,24 @@ export class CalendarService {
       },
     });
 
-    const eventIds = allEvents
-      .map((e) => e.id)
-      .filter((id): id is string => typeof id === "string");
-
-    const existing = await prisma.lesson.findMany({
-      where: { googleEventId: { in: eventIds } },
-      select: { googleEventId: true, studentId: true },
-    });
-    const existingKeys = new Set(
-      existing.map((l) => `${l.googleEventId}:${l.studentId}`),
+    const activeEvents = allEvents.filter(
+      (e) => e.id && e.status !== "cancelled",
     );
 
-    const toCreate: { date: Date; googleEventId: string; studentId: number }[] = [];
+    const activeEventIdSet = new Set(
+      activeEvents.map((e) => e.id as string),
+    );
 
-    for (const event of allEvents) {
+    const timeMinDate = new Date(timeMin);
+    const timeMaxDate = new Date(timeMax);
+
+    const desiredLessons: {
+      date: Date;
+      googleEventId: string;
+      studentId: number;
+    }[] = [];
+
+    for (const event of activeEvents) {
       if (!event.summary || !event.id) continue;
 
       const summary = event.summary.trim();
@@ -105,18 +107,66 @@ export class CalendarService {
       const date = event.start?.dateTime ?? event.start?.date;
       if (!date) continue;
 
-      for (const studentId of matchedStudentIds) {
-        const key = `${event.id}:${studentId}`;
-        if (existingKeys.has(key)) continue;
+      const lessonDate = new Date(date);
 
-        toCreate.push({
-          date: new Date(date),
+      for (const studentId of matchedStudentIds) {
+        desiredLessons.push({
+          date: lessonDate,
           googleEventId: event.id,
           studentId,
         });
-        existingKeys.add(key);
       }
     }
+
+    const lessonKey = (
+      googleEventId: string,
+      studentId: number,
+      date: Date,
+    ) => `${googleEventId}:${studentId}:${date.getTime()}`;
+
+    const desiredKeys = new Set(
+      desiredLessons.map((l) =>
+        lessonKey(l.googleEventId, l.studentId, l.date),
+      ),
+    );
+
+    const lessonsInRange = await prisma.lesson.findMany({
+      where: {
+        date: { gte: timeMinDate, lte: timeMaxDate },
+      },
+      select: { id: true, googleEventId: true, studentId: true, date: true },
+    });
+
+    const toDeleteIds = lessonsInRange
+      .filter((lesson) => {
+        if (!activeEventIdSet.has(lesson.googleEventId)) return true;
+        return !desiredKeys.has(
+          lessonKey(lesson.googleEventId, lesson.studentId, lesson.date),
+        );
+      })
+      .map((lesson) => lesson.id);
+
+    if (toDeleteIds.length > 0) {
+      await prisma.lesson.deleteMany({
+        where: { id: { in: toDeleteIds } },
+      });
+    }
+
+    const deletedIdSet = new Set(toDeleteIds);
+    const remainingKeys = new Set(
+      lessonsInRange
+        .filter((lesson) => !deletedIdSet.has(lesson.id))
+        .map((lesson) =>
+          lessonKey(lesson.googleEventId, lesson.studentId, lesson.date),
+        ),
+    );
+
+    const toCreate = desiredLessons.filter(
+      (lesson) =>
+        !remainingKeys.has(
+          lessonKey(lesson.googleEventId, lesson.studentId, lesson.date),
+        ),
+    );
 
     if (toCreate.length > 0) {
       await prisma.lesson.createMany({
@@ -128,6 +178,7 @@ export class CalendarService {
     return {
       eventsFetched: allEvents.length,
       lessonsCreated: toCreate.length,
+      lessonsDeleted: toDeleteIds.length,
     };
   }
 }

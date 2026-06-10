@@ -23,6 +23,7 @@ import { GroupsService } from '../../services/groups.service';
 import { Group } from '../../models/group.model';
 import { ToastService } from '../../../../core/toast/toast.service';
 import { SmsService } from '../../services/sms.service';
+import { CalendarService } from '../../services/calendar.service';
 
 @Component({
   standalone: true,
@@ -44,8 +45,10 @@ export class StudentDetailsComponent {
   private groupsService = inject(GroupsService);
   private toast = inject(ToastService);
   private smsService = inject(SmsService);
+  private calendarService = inject(CalendarService);
 
   student = signal<Student | null>(null);
+  private lessonsReload = signal(0);
   lessons = signal<Lesson[]>([]);
   loading = signal(true);
   error = signal(false);
@@ -128,8 +131,13 @@ export class StudentDetailsComponent {
         this.loading.set(false);
       });
 
+    this.calendarService.syncCompleted$.subscribe(() => {
+      this.lessonsReload.update((n) => n + 1);
+    });
+
     effect(() => {
       const params = this.lessonsParams();
+      this.lessonsReload();
       if (!params) {
         this.lessons.set([]);
         return;
